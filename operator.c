@@ -1,156 +1,94 @@
+
 #include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
 
-#define MAX 100
+char table[4][4] = {
+    {'>', '<', '<', '>'},
+    {'>', '>', '<', '>'},
+    {'>', '>', 'e', '>'},
+    {'<', '<', '<', 'A'}
+};
 
-int values[MAX], vtop = -1;
-char operators[MAX];
-int otop = -1;
-
-int precedence(char op)
+int index(char ch)
 {
-    if (op == '+' || op == '-')
-        return 1;
-
-    if (op == '*' || op == '/')
-        return 2;
-
-    return 0;
-}
-
-void pushValue(int value)
-{
-    values[++vtop] = value;
-}
-
-void pushOperator(char op)
-{
-    operators[++otop] = op;
-}
-
-int applyOperation()
-{
-    int b = values[vtop--];
-    int a = values[vtop--];
-    char op = operators[otop--];
-
-    switch (op)
-    {
-        case '+':
-            pushValue(a + b);
-            break;
-
-        case '-':
-            pushValue(a - b);
-            break;
-
-        case '*':
-            pushValue(a * b);
-            break;
-
-        case '/':
-            if (b == 0)
-            {
-                printf("Error: Division by zero\n");
-                exit(1);
-            }
-
-            pushValue(a / b);
-            break;
-    }
-
-    return 1;
+    if (ch == '+') return 0;
+    if (ch == '*') return 1;
+    if (ch == 'i') return 2;
+    if (ch == '$') return 3;
+    return -1;
 }
 
 int main()
 {
-    char exp[MAX];
-    int i = 0;
+    char input[30], stack[30];
+    int i = 0, top = 0;
 
-    printf("Enter an expression: ");
-    fgets(exp, MAX, stdin);
+    printf("Enter input (use i for id and $ at end): ");
+    scanf("%s", input);
 
-    while (exp[i] != '\0' && exp[i] != '\n')
+    stack[0] = '$';
+    stack[1] = '\0';
+
+    printf("\n%-15s %-15s %s\n", "Stack", "Input", "Action");
+
+    while (1)
     {
-        if (isspace((unsigned char)exp[i]))
+        int k = top;
+
+        while (k >= 0 && stack[k] == 'E')
+            k--;
+
+        int row = index(stack[k]);
+        int col = index(input[i]);
+
+        if (row == -1 || col == -1)
         {
-            i++;
+            printf("Invalid symbol\n");
+            break;
         }
 
-        else if (isdigit((unsigned char)exp[i]))
-        {
-            int num = 0;
+        char rel = table[row][col];
 
-            while (isdigit((unsigned char)exp[i]))
+        printf("%-15s %-15s ", stack, &input[i]);
+
+        if (rel == '<' || rel == '=')
+        {
+            printf("Shift\n");
+            stack[++top] = input[i++];
+            stack[top + 1] = '\0';
+        }
+        else if (rel == '>')
+        {
+            printf("Reduce\n");
+
+            if (stack[top] == 'i')
+                stack[top] = 'E';
+
+            else if (top >= 2 &&
+                     stack[top - 2] == 'E' &&
+                     (stack[top - 1] == '+' || stack[top - 1] == '*') &&
+                     stack[top] == 'E')
             {
-                num = num * 10 + (exp[i] - '0');
-                i++;
+                top -= 2;
+                stack[top] = 'E';
+                stack[top + 1] = '\0';
             }
-
-            pushValue(num);
-        }
-
-        else if (exp[i] == '(')
-        {
-            pushOperator(exp[i]);
-            i++;
-        }
-
-        else if (exp[i] == ')')
-        {
-            while (otop >= 0 && operators[otop] != '(')
-                applyOperation();
-
-            if (otop < 0)
+            else
             {
-                printf("Invalid expression\n");
-                return 1;
+                printf("Syntax Error\n");
+                break;
             }
-
-            otop--;
-            i++;
         }
-
-        else if (strchr("+-*/", exp[i]))
+        else if (rel == 'A')
         {
-            while (otop >= 0 &&
-                   operators[otop] != '(' &&
-                   precedence(operators[otop]) >= precedence(exp[i]))
-            {
-                applyOperation();
-            }
-
-            pushOperator(exp[i]);
-            i++;
+            printf("Accepted\n");
+            break;
         }
-
         else
         {
-            printf("Invalid character\n");
-            return 1;
+            printf("Syntax Error\n");
+            break;
         }
     }
-
-    while (otop >= 0)
-    {
-        if (operators[otop] == '(')
-        {
-            printf("Invalid expression\n");
-            return 1;
-        }
-
-        applyOperation();
-    }
-
-    if (vtop != 0)
-    {
-        printf("Invalid expression\n");
-        return 1;
-    }
-
-    printf("Result = %d\n", values[vtop]);
 
     return 0;
 }
