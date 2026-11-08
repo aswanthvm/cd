@@ -1,163 +1,103 @@
+
 #include <stdio.h>
-#include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
+#include <string.h>
 
-char input[100];
-int pos = 0, tempCount = 0, error = 0;
+char op_stack[20];
+char val_stack[20][10];
 
-// Skip spaces in input
-void skipSpaces()
+int op_top = -1, val_top = -1;
+int temp_count = 1;
+
+void push_op(char c)
 {
-    while (isspace(input[pos]))
-        pos++;
+    op_stack[++op_top] = c;
 }
 
-// Copy a string
-char *copy(char s[])
+char pop_op()
 {
-    char *p = malloc(strlen(s) + 1);
-    strcpy(p, s);
-    return p;
+    return op_stack[op_top--];
 }
 
-// Generate temporary variable
-char *newTemp()
+void push_val(char *val)
 {
-    char t[10];
-    sprintf(t, "t%d", ++tempCount);
-    return copy(t);
+    strcpy(val_stack[++val_top], val);
 }
 
-// Function declarations
-char *expression();
-char *term();
-char *factor();
-
-// Handle variables, numbers and brackets
-char *factor()
+void pop_val(char *val)
 {
-    char token[20];
-    int i = 0;
-
-    skipSpaces();
-
-    if (input[pos] == '(')
-    {
-        pos++;
-        char *result = expression();
-
-        skipSpaces();
-
-        if (input[pos] == ')')
-            pos++;
-        else
-            error = 1;
-
-        return result;
-    }
-
-    if (isalnum(input[pos]) || input[pos] == '_')
-    {
-        while (isalnum(input[pos]) || input[pos] == '_')
-            token[i++] = input[pos++];
-
-        token[i] = '\0';
-        return copy(token);
-    }
-
-    error = 1;
-    return copy("");
+    strcpy(val, val_stack[val_top--]);
 }
 
-// Handle multiplication and division
-char *term()
+int precedence(char op)
 {
-    char *left = factor();
+    if (op == '*' || op == '/')
+        return 2;
 
-    while (!error)
-    {
-        skipSpaces();
-        char op = input[pos];
+    if (op == '+' || op == '-')
+        return 1;
 
-        if (op != '*' && op != '/')
-            break;
-
-        pos++;
-
-        char *right = factor();
-        char *t = newTemp();
-
-        printf("%s = %s %c %s\n", t, left, op, right);
-
-        left = t;
-    }
-
-    return left;
+    return 0;
 }
 
-// Handle addition and subtraction
-char *expression()
+void generate_3ac()
 {
-    char *left = term();
+    char op[2], arg1[10], arg2[10], temp[10];
 
-    while (!error)
-    {
-        skipSpaces();
-        char op = input[pos];
+    op[0] = pop_op();
+    op[1] = '\0';
 
-        if (op != '+' && op != '-')
-            break;
+    pop_val(arg2);
+    pop_val(arg1);
 
-        pos++;
+    sprintf(temp, "t%d", temp_count++);
 
-        char *right = term();
-        char *t = newTemp();
+    printf("%s = %s %s %s\n", temp, arg1, op, arg2);
 
-        printf("%s = %s %c %s\n", t, left, op, right);
-
-        left = t;
-    }
-
-    return left;
+    push_val(temp);
 }
 
-// Main function
 int main()
 {
-    char result[20];
-    int i = 0;
+    char expr[50], result_var[10];
 
-    printf("Enter an expression (e.g. a=b+c*d):\n");
-    fgets(input, sizeof(input), stdin);
+    printf("Enter result variable: ");
+    scanf("%s", result_var);
 
-    skipSpaces();
+    printf("Enter arithmetic expression: ");
+    scanf("%s", expr);
 
-    // Read the result variable
-    while (isalnum(input[pos]) || input[pos] == '_')
-        result[i++] = input[pos++];
+    printf("\nGenerated Three Address Code:\n");
 
-    result[i] = '\0';
-
-    skipSpaces();
-
-    if (i == 0 || input[pos] != '=')
+    for (int i = 0; expr[i] != '\0'; i++)
     {
-        printf("Invalid expression\n");
-        return 0;
+        if (isalnum(expr[i]))
+        {
+            char val[2] = {expr[i], '\0'};
+            push_val(val);
+        }
+        else
+        {
+            while (op_top != -1 &&
+                   precedence(op_stack[op_top]) >= precedence(expr[i]))
+            {
+                generate_3ac();
+            }
+
+            push_op(expr[i]);
+        }
     }
 
-    pos++;
+    while (op_top != -1)
+    {
+        generate_3ac();
+    }
 
-    // Generate three address code
-    char *value = expression();
+    char final_temp[10];
 
-    skipSpaces();
+    pop_val(final_temp);
 
-    if (error || input[pos] != '\0')
-        printf("Invalid expression\n");
-    else
-        printf("%s = %s\n", result, value);
+    printf("%s = %s\n", result_var, final_temp);
 
     return 0;
 }
