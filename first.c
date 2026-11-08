@@ -3,149 +3,185 @@
 #include <string.h>
 #include <ctype.h>
 
-char p[10][10];
+char production[20][20];
+char first[26][30];
+char follow[26][30];
+
 int n;
 
-void first(char c, char s[])
+int add(char set[], char c)
 {
-    int i, j, k;
+    if (strchr(set, c))
+        return 0;
 
-    if (!isupper(c))
+    int len = strlen(set);
+    set[len] = c;
+    set[len + 1] = '\0';
+
+    return 1;
+}
+
+void findFirst(char symbol, char result[])
+{
+    int i, j;
+
+    if (!isupper(symbol))
     {
-        if (!strchr(s, c))
-            strncat(s, &c, 1);
-
+        add(result, symbol);
         return;
     }
 
     for (i = 0; i < n; i++)
     {
-        if (p[i][0] == c)
+        if (production[i][0] == symbol)
         {
-            if (p[i][3] == '#')
+            for (j = 2; production[i][j] != '\0'; j++)
             {
-                if (!strchr(s, '#'))
-                    strcat(s, "#");
-            }
-            else
-            {
-                for (j = 3; p[i][j]; j++)
+                char x = production[i][j];
+
+                if (!isupper(x))
                 {
-                    char t[20] = "";
-
-                    first(p[i][j], t);
-
-                    for (k = 0; t[k]; k++)
-                    {
-                        if (t[k] != '#' && !strchr(s, t[k]))
-                            strncat(s, &t[k], 1);
-                    }
-
-                    if (!strchr(t, '#'))
-                        break;
+                    add(result, x);
+                    break;
                 }
 
-                if (!p[i][j] && !strchr(s, '#'))
-                    strcat(s, "#");
+                char temp[30] = "";
+
+                findFirst(x, temp);
+
+                int epsilon = 0;
+
+                for (int k = 0; temp[k] != '\0'; k++)
+                {
+                    if (temp[k] == '#')
+                        epsilon = 1;
+                    else
+                        add(result, temp[k]);
+                }
+
+                if (!epsilon)
+                    break;
+
+                if (production[i][j + 1] == '\0')
+                    add(result, '#');
             }
         }
     }
 }
 
-void follow(char c, char s[])
+void findFollow()
 {
-    int i, j, k;
+    int i, j, k, change;
 
-    if (c == p[0][0] && !strchr(s, '$'))
-        strcat(s, "$");
+    add(follow[production[0][0] - 'A'], '$');
 
-    for (i = 0; i < n; i++)
+    do
     {
-        for (j = 3; p[i][j]; j++)
+        change = 0;
+
+        for (i = 0; i < n; i++)
         {
-            if (p[i][j] == c)
+            char A = production[i][0];
+
+            for (j = 2; production[i][j] != '\0'; j++)
             {
-                if (p[i][j + 1])
+                char B = production[i][j];
+
+                if (!isupper(B))
+                    continue;
+
+                int nullable = 1;
+
+                for (k = j + 1; production[i][k] != '\0'; k++)
                 {
-                    char t[20] = "";
+                    char x = production[i][k];
 
-                    first(p[i][j + 1], t);
-
-                    for (k = 0; t[k]; k++)
+                    if (!isupper(x))
                     {
-                        if (t[k] != '#' && !strchr(s, t[k]))
-                            strncat(s, &t[k], 1);
+                        change |= add(follow[B - 'A'], x);
+                        nullable = 0;
+                        break;
                     }
 
-                    if (strchr(t, '#') && p[i][0] != c)
+                    char temp[30] = "";
+
+                    findFirst(x, temp);
+
+                    for (int m = 0; temp[m] != '\0'; m++)
                     {
-                        char u[20] = "";
+                        if (temp[m] != '#')
+                            change |= add(follow[B - 'A'], temp[m]);
+                    }
 
-                        follow(p[i][0], u);
-
-                        for (k = 0; u[k]; k++)
-                        {
-                            if (!strchr(s, u[k]))
-                                strncat(s, &u[k], 1);
-                        }
+                    if (!strchr(temp, '#'))
+                    {
+                        nullable = 0;
+                        break;
                     }
                 }
-                else if (p[i][0] != c)
+
+                if (nullable)
                 {
-                    char u[20] = "";
-
-                    follow(p[i][0], u);
-
-                    for (k = 0; u[k]; k++)
-                    {
-                        if (!strchr(s, u[k]))
-                            strncat(s, &u[k], 1);
-                    }
+                    for (k = 0; follow[A - 'A'][k] != '\0'; k++)
+                        change |= add(follow[B - 'A'],
+                                      follow[A - 'A'][k]);
                 }
             }
         }
-    }
+
+    } while (change);
 }
 
 int main()
 {
     int i;
-    char nt[10] = "";
+    char seen[26] = {0};
 
     printf("Enter number of productions: ");
     scanf("%d", &n);
 
-    printf("Enter productions (use # for epsilon):\n");
+    printf("Enter productions (example E=TR):\n");
 
     for (i = 0; i < n; i++)
-        scanf("%s", p[i]);
+        scanf("%s", production[i]);
+
+    for (i = 0; i < n; i++)
+        findFirst(production[i][0],
+                  first[production[i][0] - 'A']);
+
+    findFollow();
+
+    printf("\nFIRST:\n");
 
     for (i = 0; i < n; i++)
     {
-        if (!strchr(nt, p[i][0]))
-            strncat(nt, &p[i][0], 1);
+        char c = production[i][0];
+
+        if (!seen[c - 'A'])
+        {
+            printf("FIRST(%c) = { %s }\n",
+                   c, first[c - 'A']);
+
+            seen[c - 'A'] = 1;
+        }
     }
 
-    printf("\nFIRST sets:\n");
+    for (i = 0; i < 26; i++)
+        seen[i] = 0;
 
-    for (i = 0; nt[i]; i++)
+    printf("\nFOLLOW:\n");
+
+    for (i = 0; i < n; i++)
     {
-        char s[20] = "";
+        char c = production[i][0];
 
-        first(nt[i], s);
+        if (!seen[c - 'A'])
+        {
+            printf("FOLLOW(%c) = { %s }\n",
+                   c, follow[c - 'A']);
 
-        printf("FIRST(%c) = {%s}\n", nt[i], s);
-    }
-
-    printf("\nFOLLOW sets:\n");
-
-    for (i = 0; nt[i]; i++)
-    {
-        char s[20] = "";
-
-        follow(nt[i], s);
-
-        printf("FOLLOW(%c) = {%s}\n", nt[i], s);
+            seen[c - 'A'] = 1;
+        }
     }
 
     return 0;
