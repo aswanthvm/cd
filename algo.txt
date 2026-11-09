@@ -1,0 +1,485 @@
+COMPILER DESIGN LAB – ALL EXPERIMENT ALGORITHMS
+
+EXPERIMENT 1: LEXICAL ANALYZER
+
+Step 1: Start.
+Step 2: Define the list of C keywords and operators. Read the input program using getchar() until EOF.
+Step 3: Define a function isKeyword() which returns 1 if the character buffer is a keyword, otherwise return 0.
+Step 4: In main(), define the operator array operators[] = "+-*/%=".
+Step 5: While the read character ch is not EOF:
+    If ch is a space, tab or newline, skip it.
+    If ch is an operator, print it as an Operator.
+    If ch is a special character, print it as a Special Character.
+    If ch is an alphabet, read characters into buffer until a non-alphanumeric character is found.
+        Add the null character at the end of buffer.
+        Push the extra character back using ungetc().
+        If isKeyword(buffer) is true, print Keyword.
+        Otherwise, print Identifier.
+    If ch is a digit, read all consecutive digits into buffer.
+        Add the null character at the end of buffer.
+        Push the extra character back using ungetc().
+        Print Constant.
+Step 6: Stop.
+
+
+EXPERIMENT 2: EPSILON CLOSURE
+
+Step 1: Start.
+Step 2: Declare the number of states, transitions and result arrays.
+Step 3: Define a function add_state() to add a state if it is not already present.
+Step 4: Define a recursive function find_closure():
+    For each transition:
+        If the starting state matches the current state
+        and the input symbol is epsilon:
+            Add the destination state to the closure.
+            Recursively find its epsilon closure.
+Step 5: Read the number of states and transitions.
+Step 6: Read all transition details.
+Step 7: For each state:
+    Add the state itself to its closure.
+    Call find_closure().
+Step 8: Display the epsilon closure of every state.
+Step 9: Stop.
+
+
+EXPERIMENT 3: ε-NFA TO NFA CONVERSION
+
+Step 1: Start.
+Step 2: Declare transition, epsilon, closure and NFA arrays.
+Step 3: Define findClosure():
+    Set each state's closure to contain itself.
+    Add all direct epsilon transitions.
+    Repeat through all states to find indirect epsilon transitions.
+Step 4: Read the number of states and input symbols.
+Step 5: Read all normal and epsilon transitions.
+Step 6: Read the initial state and final states.
+Step 7: Call findClosure().
+Step 8: For each state and input symbol:
+    Find all states in its epsilon closure.
+    Find their transitions for the input symbol.
+    Find the epsilon closure of each destination state.
+    Add these states to the new NFA transition table.
+Step 9: Mark a state as final if its epsilon closure contains an original final state.
+Step 10: Display the equivalent NFA transition table, initial state and final states.
+Step 11: Stop.
+
+
+EXPERIMENT 4: NFA TO DFA CONVERSION
+
+Step 1: Start.
+Step 2: Declare NFA, DFA and DFA-state arrays.
+Step 3: Define is_equal() to compare two state sets.
+Step 4: Define find_state() to search whether a state set already exists.
+Step 5: Read the number of NFA states and input symbols.
+Step 6: Read the NFA transition table.
+Step 7: Initialize the starting DFA state with the NFA initial state.
+Step 8: For every DFA state and input symbol:
+    Initialize the move set as empty.
+    Find all NFA transitions from the states in the current DFA state.
+    Store the destination states in the move set.
+Step 9: Search whether the move set already exists.
+    If it does not exist:
+        Add it as a new DFA state.
+    Otherwise:
+        Use its existing state number.
+Step 10: Repeat until all DFA states are processed.
+Step 11: Display the DFA transition table.
+Step 12: Stop.
+
+
+EXPERIMENT 5: DFA MINIMIZATION
+
+Step 1: Start.
+Step 2: Declare transition, final-state and group arrays.
+Step 3: Read the number of states, input symbols and transition table.
+Step 4: Read the final states.
+Step 5: Initially divide states into two groups:
+    Final states.
+    Non-final states.
+Step 6: Repeat partition refinement:
+    For each state, compare its transitions with other states in the same group.
+    If their destination states belong to different groups, separate them.
+    Assign new group numbers.
+Step 7: Repeat until no group changes occur.
+Step 8: Count the minimized states.
+Step 9: Display equivalent states and the minimized transition table.
+Step 10: Display the final states.
+Step 11: Stop.
+
+
+EXPERIMENT 6: OPERATOR PRECEDENCE PARSER
+
+Step 1: Start.
+Step 2: Declare value and operator stacks.
+Step 3: Initialize both stack pointers to -1.
+Step 4: Define precedence():
+    Return 1 for + and -.
+    Return 2 for * and /.
+    Return 0 for other operators.
+Step 5: Define pushValue() and pushOperator() to insert elements into stacks.
+Step 6: Define applyOperation():
+    Pop two values and one operator.
+    Perform the operation.
+    Push the result into the value stack.
+Step 7: Read the arithmetic expression.
+Step 8: Scan the expression from left to right:
+    If a space is found, skip it.
+    If a number is found, extract the complete number and push it.
+    If '(' is found, push it onto the operator stack.
+    If ')' is found, perform operations until '(' is found.
+    If an operator is found:
+        Apply operators with higher or equal precedence.
+        Push the current operator.
+Step 9: Apply all remaining operators.
+Step 10: Display the final result.
+Step 11: Stop.
+
+
+EXPERIMENT 7: FIRST AND FOLLOW
+
+Step 1: Start.
+Step 2: Read the number of productions and the grammar.
+Step 3: Initialize FIRST and FOLLOW sets.
+Step 4: Find FIRST of each non-terminal:
+    If the symbol is a terminal, add it to FIRST.
+    If the production contains epsilon, add epsilon.
+    Otherwise, find FIRST of the symbols on the right-hand side.
+Step 5: Find FOLLOW of each non-terminal:
+    Add $ to FOLLOW of the start symbol.
+    If a non-terminal is followed by a terminal, add that terminal.
+    If followed by another non-terminal, add its FIRST excluding epsilon.
+    If the remaining symbols can derive epsilon, add FOLLOW of the left-hand side.
+Step 6: Repeat until no more symbols can be added.
+Step 7: Display FIRST and FOLLOW sets.
+Step 8: Stop.
+
+
+EXPERIMENT 8: RECURSIVE DESCENT PARSER
+
+Step 1: Start.
+Step 2: Declare the input string and initialize the input pointer to 0.
+Step 3: Define E():
+    Call T().
+    If successful, call E1().
+Step 4: Define E1():
+    If the current symbol is '+':
+        Move the input pointer.
+        Call T() and E1().
+    Otherwise, accept epsilon.
+Step 5: Define T():
+    Call F().
+    If successful, call T1().
+Step 6: Define T1():
+    If the current symbol is '*':
+        Move the input pointer.
+        Call F() and T1().
+    Otherwise, accept epsilon.
+Step 7: Define F():
+    If the current symbol is 'i', move the pointer and return success.
+    If the current symbol is '(':
+        Move the pointer.
+        Call E().
+        Check for ')'.
+        Move the pointer and return success.
+    Otherwise, return failure.
+Step 8: Read the input expression.
+Step 9: Call E().
+Step 10: If parsing succeeds and the entire input is consumed, print Input Accepted.
+         Otherwise, print Input Rejected.
+Step 11: Stop.
+
+
+EXPERIMENT 9: SHIFT REDUCE PARSER
+
+Step 1: Start.
+Step 2: Declare stack and input arrays.
+Step 3: Initialize stack pointer and input pointer.
+Step 4: Define check() to perform reductions:
+    If the stack contains i, reduce it to E.
+    If the stack contains E*E, reduce it to E.
+    If the stack contains E+E, reduce it to E.
+    Repeat until no more reductions are possible.
+Step 5: Read the input expression and append $.
+Step 6: Initialize the stack with $.
+Step 7: While the input is not completely processed:
+    Shift the next input symbol onto the stack.
+    Display the shift action.
+    Call check() to perform reductions.
+Step 8: If the stack contains $E and the input reaches $:
+    Print Accepted.
+    Otherwise, print Syntax Error.
+Step 9: Stop.
+
+
+EXPERIMENT 10: LEX THEORY
+
+Step 1: Start.
+Step 2: Understand the structure of a Lex program.
+Step 3: Define the declaration section.
+Step 4: Define patterns and actions in the rule section.
+Step 5: Define supporting functions in the user subroutine section.
+Step 6: Compile and execute the Lex program.
+Step 7: Stop.
+
+
+EXPERIMENT 11: LEX – SUBSTRING REPLACEMENT
+
+Step 1: Start.
+Step 2: Display the input prompt and invoke yylex().
+Step 3: Define a Lex rule to recognize the target substring.
+Step 4: Replace the matched substring with the required replacement string.
+Step 5: Use ECHO to print all unmatched characters.
+Step 6: Define yywrap() to return 1 at the end of input.
+Step 7: Stop.
+
+
+EXPERIMENT 12: LEX – BLANK SPACE TO $
+
+Step 1: Start.
+Step 2: Display the input prompt and invoke yylex().
+Step 3: Define a Lex rule to recognize blank spaces.
+Step 4: Replace each blank space with '$'.
+Step 5: Print all other characters without modification.
+Step 6: Define yywrap() to return 1 at the end of input.
+Step 7: Stop.
+
+
+EXPERIMENT 13: LEX – REMOVE COMMENTS
+
+Step 1: Start.
+Step 2: Display the input prompt and invoke yylex().
+Step 3: Define a Lex rule to recognize single-line comments.
+Step 4: Ignore the matched single-line comments.
+Step 5: Define a Lex rule to recognize multi-line comments.
+Step 6: Ignore the matched multi-line comments.
+Step 7: Print all other characters using ECHO.
+Step 8: Define yywrap() to return 1 at the end of input.
+Step 9: Stop.
+
+
+EXPERIMENT 14: LEX – COUNT WORDS, SPACES AND TABS
+
+Step 1: Start.
+Step 2: Initialize words, spaces, tabs and characters counters to zero.
+Step 3: Display the input prompt and invoke yylex().
+Step 4: Define Lex rules:
+    If spaces or tabs are found:
+        Count each space and tab separately.
+        Update the character count.
+    If a word is found:
+        Increment the word count.
+        Add its length to the character count.
+    If newline is found:
+        Update the character count.
+    For other characters:
+        Update the character count.
+Step 5: Display the total words, spaces, tabs and characters.
+Step 6: Define yywrap() to return 1 at the end of input.
+Step 7: Stop.
+
+
+EXPERIMENT 15: LEX – IDENTIFY KEYWORDS, IDENTIFIERS AND NUMBERS
+
+Step 1: Start.
+Step 2: Display the input prompt and invoke yylex().
+Step 3: Define Lex rules:
+    If a keyword is found, print Keyword.
+    If an identifier is found, print Identifier.
+    If a number is found, print Number.
+    Ignore spaces, tabs and newlines.
+    For other characters, print Special Character.
+Step 4: Define yywrap() to return 1 at the end of input.
+Step 5: Stop.
+
+
+EXPERIMENT 16: LEX – PATTERN MATCHING
+
+Step 1: Start.
+Step 2: Display the input prompt and invoke yylex().
+Step 3: Define a Lex rule to recognize the required pattern.
+Step 4: If the input matches the pattern, print Valid string.
+Step 5: Otherwise, print Invalid string.
+Step 6: Define yywrap() to return 1 at the end of input.
+Step 7: Stop.
+
+
+EXPERIMENT 17: YACC THEORY
+
+Step 1: Start.
+Step 2: Understand the structure of a YACC program.
+Step 3: Define the declaration section.
+Step 4: Declare tokens and precedence.
+Step 5: Define grammar rules and semantic actions.
+Step 6: Define supporting functions and main().
+Step 7: Compile and execute the YACC program.
+Step 8: Stop.
+
+
+EXPERIMENT 18: YACC – PATTERN MATCHING
+
+Step 1: Start.
+Step 2: In main(), display the input prompt and invoke yyparse().
+Step 3: The parser uses yylex() to scan the input and generate tokens.
+Step 4: Define Lex rules:
+    If 'a' is encountered, return token A.
+    If 'b' is encountered, return token B.
+    If newline is encountered, return newline.
+    For other characters, return INVALID.
+Step 5: Declare tokens A, B and INVALID in YACC.
+Step 6: Define input to accept sequence followed by B and newline.
+Step 7: Define sequence to accept zero or more A tokens.
+Step 8: If parsing succeeds, print Pattern matched.
+Step 9: If a syntax error occurs, print Pattern not matched.
+Step 10: Stop.
+
+
+EXPERIMENT 19: YACC – RECOGNIZE VALID VARIABLES
+
+Step 1: Start.
+Step 2: In main(), display the input prompt and invoke yyparse().
+Step 3: Define Lex rules:
+    If an alphabet is encountered, return LETTER.
+    If a digit is encountered, return DIGIT.
+    Ignore spaces and tabs.
+    Return 0 for newline.
+    Return -1 for invalid characters.
+Step 4: Declare LETTER and DIGIT tokens in YACC.
+Step 5: Define variable as LETTER followed by rest.
+Step 6: Define rest to accept:
+    LETTER followed by rest.
+    DIGIT followed by rest.
+    Empty string.
+Step 7: If parsing succeeds, print Valid variable.
+Step 8: Otherwise, print Invalid variable.
+Step 9: Stop.
+
+
+EXPERIMENT 20: YACC – SIMPLE CALCULATOR
+
+Step 1: Start.
+Step 2: In main(), display Enter expr and invoke yyparse().
+Step 3: Define Lex rules:
+    If digits are encountered, convert them using atoi() and return NUMBER.
+    If newline is encountered, return newline.
+    For other characters, return the character itself.
+Step 4: Declare NUMBER token in YACC.
+Step 5: Define precedence:
+    + and - have equal precedence.
+    * and / have higher precedence.
+    Use left associativity.
+Step 6: Define grammar rules to recognize:
+    Numbers.
+    Addition.
+    Subtraction.
+    Multiplication.
+    Division.
+    Parenthesized expressions.
+Step 7: Perform arithmetic operations using semantic actions.
+Step 8: Display the calculated result.
+Step 9: If an error occurs, print ERROR.
+Step 10: Stop.
+
+
+EXPERIMENT 21: YACC – CONVERT BNF TO YACC
+
+Step 1: Start.
+Step 2: Define Lex rules in bnf.l to recognize:
+    Assignment (::=).
+    Alternation (|).
+    Statement terminator (;).
+    Non-terminals enclosed in angle brackets.
+    Terminal symbols.
+    Ignore whitespace.
+Step 3: In YACC, declare a string union type and tokens:
+        NON_TERMINAL, TERMINAL, ASSIGN, PIPE and SEMI.
+Step 4: Define grammar rules for grammar and rules to handle multiple productions.
+Step 5: Define rule to match:
+        NON_TERMINAL ASSIGN productions SEMI.
+Step 6: Define productions to handle alternatives separated by PIPE.
+Step 7: Define production to handle symbols and empty productions.
+Step 8: Define symbol to match NON_TERMINAL or TERMINAL.
+Step 9: Print the corresponding string values.
+Step 10: Define yyerror() to report invalid BNF syntax.
+Step 11: In main(), display the prompt and call yyparse().
+Step 12: Stop.
+
+
+EXPERIMENT 22: YACC – CHECK FOR LOOP SYNTAX
+
+Step 1: Start.
+Step 2: Define Lex rules to recognize:
+    Keyword for.
+    Identifiers.
+    Numbers.
+    Relational operators.
+    Increment and decrement operators.
+    Whitespace and single characters.
+Step 3: Declare FOR, ID, NUM, RELOP, INC and DEC tokens.
+Step 4: Define the main grammar rule:
+        for (init ; cond ; incr) body.
+Step 5: Define init to handle assignment or empty expression.
+Step 6: Define cond to handle relational expressions or empty conditions.
+Step 7: Define incr to handle increment, decrement or assignment.
+Step 8: Define expr to handle identifiers, numbers, addition and subtraction.
+Step 9: Define body and stmts to handle block statements, assignments or empty statements.
+Step 10: Define yyerror() to print Invalid for loop syntax.
+Step 11: In main(), display the prompt and call yyparse().
+Step 12: Stop.
+
+
+EXPERIMENT 23: SIMPLE INTERMEDIATE CODE GENERATION
+
+Step 1: Start.
+Step 2: Define Lex rules to recognize identifiers and numbers.
+Step 3: Ignore whitespace and return newline for newline characters.
+Step 4: Declare ID and NUM tokens in YACC.
+Step 5: Define precedence and associativity for +, -, *, / and UMINUS.
+Step 6: Define newTemp():
+    Allocate memory.
+    Increment tempCount.
+    Generate a temporary variable such as t1, t2.
+    Return the temporary variable.
+Step 7: Define expression rules to handle:
+    Addition.
+    Subtraction.
+    Multiplication.
+    Division.
+    Parentheses.
+    Unary minus.
+    Identifiers and numbers.
+Step 8: For each arithmetic operation:
+    Generate a new temporary variable.
+    Print the corresponding three-address statement.
+Step 9: For identifiers, numbers and parentheses, pass the value directly.
+Step 10: Define assignment rule ID = expr followed by newline.
+Step 11: Print the final assignment statement.
+Step 12: Define yyerror() to display Invalid expression.
+Step 13: In main(), call yyparse().
+Step 14: Stop.
+
+
+EXPERIMENT 24: THREE ADDRESS CODE TO 8086 ASSEMBLY
+
+Step 1: Start.
+Step 2: Declare variables to store result, operands, operator and input code.
+Step 3: Read the three-address code in the form:
+        result = operand1 operator operand2.
+Step 4: Extract result, operand1, operator and operand2 using sscanf().
+Step 5: Generate MOV AX, operand1.
+Step 6: Check the operator:
+    If operator is '+':
+        Generate ADD AX, operand2.
+    If operator is '-':
+        Generate SUB AX, operand2.
+    If operator is '*':
+        Generate MOV BX, operand2.
+        Generate MUL BX.
+    If operator is '/':
+        Generate MOV BX, operand2.
+        Generate MOV DX, 0.
+        Generate DIV BX.
+    Otherwise:
+        Print Invalid operator.
+Step 7: Generate MOV result, AX.
+Step 8: Display the equivalent 8086 assembly instructions.
+Step 9: Stop.
