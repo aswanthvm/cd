@@ -1,89 +1,79 @@
-
-#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
-int isKeyword(char buffer[]) {
+int isKeyword(char str[])
+{
     char keywords[32][10] = {
-        "auto", "break", "case", "char", "const", "continue",
-        "default", "do", "double", "else", "enum", "extern",
-        "float", "for", "goto", "if", "int", "long",
-        "register", "return", "short", "signed", "sizeof", "static",
-        "struct", "switch", "typedef", "union", "unsigned", "void",
-        "volatile", "while"
+        "int", "char", "float", "double", "if", "else",
+        "for", "while", "do", "return", "void", "break",
+        "continue", "switch", "case", "default", "long",
+        "short", "const", "static", "struct", "union",
+        "enum", "goto", "sizeof", "auto", "extern",
+        "register", "signed", "unsigned", "volatile", "typedef"
     };
 
-    for (int i = 0; i < 32; i++) {
-        if (strcmp(keywords[i], buffer) == 0)
+    int i;
+
+    for (i = 0; i < 32; i++)
+    {
+        if (strcmp(str, keywords[i]) == 0)
             return 1;
     }
+
     return 0;
 }
 
-int main() {
-    int ch, i, j = 0;
-    char buffer[30];
-    char operators[] = "+-*/%=";
+int main()
+{
+    char ch, buffer[30];
+    int i;
 
-    printf("Enter C code:\n");
+    printf("Enter C code :\n");
 
-    printf("%-20s%-20s\n", "Token", "Type");
-    printf("----------------------------------------\n");
-
-    while ((ch = getchar()) != EOF) {
-
-        // Ignore spaces, tabs and newlines
+    while ((ch = getchar()) != EOF)
+    {
         if (isspace(ch))
             continue;
 
-        // Check for operators
-        for (i = 0; i < 6; i++) {
-            if (ch == operators[i]) {
-                printf("%-20c%-20s\n", ch, "Operator");
-                break;
-            }
-        }
+        if (isalpha(ch) || ch == '_')
+        {
+            i = 0;
+            buffer[i++] = ch;
 
-        // Check for special characters
-        if (ch == ';' || ch == ',' || ch == '{' ||
-            ch == '}' || ch == '(' || ch == ')') {
-            printf("%-20c%-20s\n", ch, "Special Character");
-        }
+            while (isalnum(ch = getchar()) || ch == '_')
+                buffer[i++] = ch;
 
-        if (isalpha(ch)) {
-            buffer[j++] = ch;
-            ch = getchar();
-
-            while (isalnum(ch)) {
-                buffer[j++] = ch;
-                ch = getchar();
-            }
-
-            buffer[j] = '\0';
-            j = 0;
+            buffer[i] = '\0';
 
             if (isKeyword(buffer))
-                printf("%-20s%-20s\n", buffer, "Keyword");
+                printf("%-20s Keyword\n", buffer);
             else
-                printf("%-20s%-20s\n", buffer, "Identifier");
+                printf("%-20s Identifier\n", buffer);
 
             ungetc(ch, stdin);
         }
-        else if (isdigit(ch)) {
-            buffer[j++] = ch;
-            ch = getchar();
 
-            while (isdigit(ch)) {
-                buffer[j++] = ch;
-                ch = getchar();
-            }
+        else if (isdigit(ch))
+        {
+            i = 0;
+            buffer[i++] = ch;
 
-            buffer[j] = '\0';
-            j = 0;
+            while (isdigit(ch = getchar()))
+                buffer[i++] = ch;
 
-            printf("%-20s%-20s\n", buffer, "Constant");
+            buffer[i] = '\0';
+
+            printf("%-20s Constant\n", buffer);
+
             ungetc(ch, stdin);
         }
+
+        else if (strchr("+-*/%=", ch))
+            printf("%-20c Operator\n", ch);
+
+        else if (strchr(";,{}()", ch))
+            printf("%-20c Special Character\n", ch);
     }
 
     return 0;
